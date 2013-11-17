@@ -9,7 +9,7 @@
 #include <linux/ipv6.h>
 #include <net/ipv6.h>
  
-static short int nhdrs = 1;
+static short int nhdrs = 0;
 module_param(nhdrs, short, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
 MODULE_PARM_DESC(nhdrs, "Number of extension headers that will be added, default is 0");
 MODULE_LICENSE("GPL v2");
@@ -59,14 +59,14 @@ unsigned int hook_func(unsigned int hooknum, struct sk_buff *skb, const struct n
 		if (ipv6->nexthdr != NEXTHDR_TCP) {
 			return NF_ACCEPT;
 		}
-		printk (KERN_INFO "%pI6c -> %pI6c, header %d, headroom %d", &ipv6->saddr, &ipv6->daddr, ipv6->nexthdr, skb_headroom(skb));
+//		printk (KERN_INFO "%pI6c -> %pI6c, header %d, headroom %d", &ipv6->saddr, &ipv6->daddr, ipv6->nexthdr, skb_headroom(skb));
 		if (skb_headroom(skb) < nhdrs * DST_OPTS_HLEN + ETH_HLEN) {	// check if headroom is big enough
 			if (pskb_expand_head(skb, SKB_DATA_ALIGN(nhdrs * DST_OPTS_HLEN + ETH_HLEN) - skb_headroom(skb), 0, GFP_ATOMIC) != 0) { //expand the headroom
 				printk (KERN_INFO "Cannot reallocate headroom");
 				return NF_DROP;
 			}
 		}
-		printk(KERN_INFO "new headroom %d", skb_headroom(skb));
+//		printk(KERN_INFO "new headroom %d", skb_headroom(skb));
 		skb_push(skb, nhdrs * DST_OPTS_HLEN);
 		memmove(skb->data, ipv6, sizeof(struct ipv6hdr));
 		skb_reset_network_header(skb);
@@ -94,7 +94,7 @@ int init_module()
  
         nf_register_hook(&nfho);
 
-        printk(KERN_INFO "init_module() called, number of headers %d\n", nhdrs); 
+        printk(KERN_INFO "Dsthdr module: number of headers %d\n", nhdrs); 
         return 0;
 }
  
